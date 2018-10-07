@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">OPSCPOE</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="login">Login</string>
+    <string name="sign_up">Not registered? Sign Up Here</string>
+    <string name="prompt_name">Name</string>
+    <string name="reg_btn_label">Register</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="sign_up_already">Already registered? Login here</string>
+</resources>
