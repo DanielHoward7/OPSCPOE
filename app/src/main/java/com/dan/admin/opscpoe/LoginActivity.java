@@ -73,7 +73,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             public void onComplete(@NonNull Task<AuthResult> task) {
                 progressBar.setVisibility(View.GONE);
                 if(task.isSuccessful()){
-                    Intent intent = new Intent(LoginActivity.this, MapActivity.class);
+                    finish();
+                    Intent intent = new Intent(LoginActivity.this, ProfileActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
                 }else{
@@ -84,10 +85,20 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+
+        if (mAuth.getCurrentUser()!=null){
+            finish();
+            startActivity(new Intent(this, ProfileActivity.class));
+        }
+    }
+
+    @Override
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.sign_up:
-
+                finish();
                 startActivity(new Intent(this, RegisterActivity.class));
 
                 break;

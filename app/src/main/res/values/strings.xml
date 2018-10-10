@@ -8,4 +8,19 @@
     <string name="reg_btn_label">Register</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="sign_up_already">Already registered? Login here</string>
+    <string name="metric">metric</string>
+    <string name="imperial">imperial</string>
+    <string name="unit">Choose preferred unit of measurement</string>
+    <string name="save_preferences">Save Preferences</string>
+    
+    <array name="modes">
+        <item>Car</item>
+        <item>Walk</item>
+        <item>Public Transport</item>
+    </array>
+
+    <array name="units">
+        <item>Imperial</item>
+        <item>Metric</item>
+    </array>
 </resources>
