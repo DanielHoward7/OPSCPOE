@@ -2,7 +2,6 @@ package com.dan.admin.opscpoe;
 
 import android.Manifest;
 import android.app.Dialog;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -20,54 +19,63 @@ import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.widget.Adapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.common.api.GoogleApiActivity;
+import com.google.android.gms.common.api.GoogleApi;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.Places;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.GeoPoint;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener {
 
     private static final String TAG = "MapActivity";
     private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private static final String COURSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
-    private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
+//    private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
     private static final int PERMISSIONS_REQUEST_ENABLE_GPS = 1235;
     private static final int ERROR_DIALOG_REQUEST = 9001;
+    private static final LatLngBounds latlngbounds = new LatLngBounds(new LatLng(-40,-168),new LatLng(71,136));
+
 
     private Boolean mLocationPermissionsGranted = false;
     private FusedLocationProviderClient fusedLocationProviderClient;
-    private MapView mapView;
     private UserLocation userLocation;
     private FirebaseAuth mAuth;
     private FirebaseFirestore fsDb;
-    private EditText searchET;
+    private AutoCompleteTextView searchET;
+    private GoogleMap map;
+    private ImageView gps;
+    private PlaceAutocompleteAdapter placeAutocompleteAdapter;
+    private GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,31 +89,82 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mAuth = FirebaseAuth.getInstance();
         fsDb = FirebaseFirestore.getInstance();
 
-        searchET = (EditText) findViewById(R.id.input_search);
+        searchET = (AutoCompleteTextView) findViewById(R.id.input_search);
+        gps = (ImageView) findViewById(R.id.ic_loc);
+
+        mGoogleApiClient = new GoogleApiClient
+                .Builder(this)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .enableAutoManage(this,0, this)
+                .build();
 
         getLocationPermission();
         checkMapServices();
 
-        displayMap(savedInstanceState);
+        getProfileDetails();
+        displayMap();
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        Toast.makeText(this, "Map is Ready", Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "onMapReady: map is ready");
+        map = googleMap;
+        if (mLocationPermissionsGranted) {
+            getDeviceLocation();
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+                map.setMyLocationEnabled(true);
+                map.getUiSettings().setMyLocationButtonEnabled(false);
+
+                init();
+
+        }
     }
 
     private void init(){
+        Log.d(TAG, "init: initializing");
+    
+        placeAutocompleteAdapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient,
+                latlngbounds, null);
+
+        searchET.setAdapter(placeAutocompleteAdapter);
+
         searchET.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+            public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
+                if(actionId == EditorInfo.IME_ACTION_SEARCH
+                        || actionId == EditorInfo.IME_ACTION_DONE
+                        || keyEvent.getAction() == KeyEvent.ACTION_DOWN
+                        || keyEvent.getAction() == KeyEvent.KEYCODE_ENTER){
 
-                if (actionId==EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE
-                        || event.getAction() == KeyEvent.ACTION_DOWN
-                        || event.getAction() == KeyEvent.KEYCODE_ENTER){
-
-                    geoLocate();
+                    //execute our method for searching
+                   locate();
                 }
+
                 return false;
             }
         });
+
+        gps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG, "onClick: clicked gps icon");
+                getDeviceLocation();
+            }
+        });
+
     }
 
-    private void geoLocate(){
+
+    private void locate(){
 
         String search = searchET.getText().toString();
 
@@ -119,51 +178,47 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
         if (list.size() > 0){
             Address address = list.get(0);
+            Log.d(TAG, "locate: found a location: " + address.toString());
 
+            moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), 13, address.getAddressLine(0));
         }
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    private void moveCamera(LatLng latLng, float zoom, String title){
+        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
+        map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
 
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu, menu);
-
-        return true;
+        MarkerOptions options = new MarkerOptions().position(latLng).title(title);
+        map.addMarker(options);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    private void getDeviceLocation(){
+        Log.d(TAG, "getDeviceLocation: getting the devices current location");
 
-        switch (item.getItemId()){
-            case R.id.menuMap:
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-                startActivity(new Intent(this, MapActivity.class));
+        try{
+            if(mLocationPermissionsGranted){
 
-            case R.id.menuLogout:
+                final Task location = fusedLocationProviderClient.getLastLocation();
+                location.addOnCompleteListener(new OnCompleteListener() {
+                    @Override
+                    public void onComplete(@NonNull Task task) {
+                        if(task.isSuccessful()){
+                            Log.d(TAG, "onComplete: found location!");
+                            Location currentLocation = (Location) task.getResult();
 
-                FirebaseAuth.getInstance().signOut();
-                finish();
-                startActivity(new Intent(this, LoginActivity.class));
-        }
-        return true;
-    }
+                            moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 13, "My location");
 
-    private void saveUserLocation(){
-        if (userLocation != null){
-            DocumentReference reference = fsDb.collection(getString(R.string.user_locations))
-                    .document(mAuth.getUid());
-
-            reference.set(userLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if (task.isSuccessful()) {
-                        Log.d(TAG, "saveUserLocation: \ninserted user location into database." +
-                                "\n latitude: " + userLocation.getGeoPoint().getLatitude() +
-                                "\n longitude: " + userLocation.getGeoPoint().getLongitude());
+                        }else{
+                            Log.d(TAG, "onComplete: current location is null");
+                            Toast.makeText(MapActivity.this, "unable to get current location", Toast.LENGTH_SHORT).show();
+                        }
                     }
-                }
-            });
+                });
+            }
+        }catch (SecurityException e){
+            Log.e(TAG, "getDeviceLocation: SecurityException: " + e.getMessage() );
         }
     }
 
@@ -183,47 +238,59 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         Profile profile = task.getResult().toObject(Profile.class);
                         userLocation.setProfile(profile);
                         ((UserProfile)getApplicationContext()).setProfile(profile);
-                        getLastLocation();
-                    }
+                        Log.d(TAG, "getProfileDetails: worked" );
+                        getDeviceLocation();
+                        }
                 }
             });
         }else{
-            getLastLocation();
+            getDeviceLocation();
+            Log.d(TAG, "getProfileDetails: didnt work" );
         }
     }
 
-    private void getLastLocation(){
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
-            return;
-        }
-        fusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
-            @Override
-            public void onComplete(@NonNull Task<Location> task) {
-                if (task.isSuccessful()){
-                    Location location = task.getResult();
-                    GeoPoint geoPoint = new GeoPoint(location.getLatitude(),location.getLongitude());
-                    Log.d(TAG, "OnComplete: lat:" + geoPoint.getLatitude());
-                    Log.d(TAG, "OnComplete: long:" + geoPoint.getLongitude());
 
-                    userLocation.setGeoPoint(geoPoint);
-                    userLocation.setTimestamp(null);
-                    saveUserLocation();
-                }
-            }
-        });
+//    private void saveUserLocation(){
+//        if (userLocation != null){
+//            DocumentReference reference = fsDb.collection(getString(R.string.user_locations))
+//                    .document(mAuth.getUid());
+//
+//            reference.set(userLocation).addOnCompleteListener(new OnCompleteListener<Void>() {
+//                @Override
+//                public void onComplete(@NonNull Task<Void> task) {
+//                    if (task.isSuccessful()) {
+//                        Log.d(TAG, "saveUserLocation: \ninserted user location into database." +
+//                                "\n latitude: " + userLocation.getGeoPoint().getLatitude() +
+//                                "\n longitude: " + userLocation.getGeoPoint().getLongitude());
+//                    }
+//                }
+//            });
+//        }
+//    }
+//
 
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        Toast.makeText(this, "Map is Ready", Toast.LENGTH_SHORT).show();
-        Log.d(TAG, "onMapReady: map is ready");
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        googleMap.setMyLocationEnabled(true);
-        init();
-    }
+//
+//    private void getLastLocation(){
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED){
+//            return;
+//        }
+//        fusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+//            @Override
+//            public void onComplete(@NonNull Task<Location> task) {
+//                if (task.isSuccessful()){
+//                    Location location = task.getResult();
+//                    GeoPoint geoPoint = new GeoPoint(location.getLatitude(),location.getLongitude());
+//                    Log.d(TAG, "OnComplete: lat:" + geoPoint.getLatitude());
+//                    Log.d(TAG, "OnComplete: long:" + geoPoint.getLongitude());
+//
+//                    userLocation.setGeoPoint(geoPoint);
+//                    userLocation.setTimestamp(null);
+//                    saveUserLocation();
+//                }
+//            }
+//        });
+//
+//    }
 
     private boolean checkMapServices(){
         if(isServicesUpToDate()){
@@ -234,29 +301,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         return false;
     }
 
-    private void displayMap(Bundle savedInstanceState) {
-        Log.d(TAG, "displayMap: initializing map");
-        Bundle mVBundle = null;
-        if (savedInstanceState != null){
-            mVBundle = savedInstanceState.getBundle(MAPVIEW_BUNDLE_KEY);
-        }
-        mapView = (MapView) findViewById(R.id.map);
-        mapView.onCreate(mVBundle);
-        mapView.getMapAsync(this);
-
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        Bundle mapVBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
-        if (mapVBundle == null){
-            mapVBundle = new Bundle();
-            outState.putBundle(MAPVIEW_BUNDLE_KEY, mapVBundle);
-        }
-        mapView.onSaveInstanceState(mapVBundle);
-    }
+//    @Override
+//    protected void onSaveInstanceState(Bundle outState) {
+//        super.onSaveInstanceState(outState);
+//
+//        Bundle mapVBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
+//        if (mapVBundle == null){
+//            mapVBundle = new Bundle();
+//            outState.putBundle(MAPVIEW_BUNDLE_KEY, mapVBundle);
+//        }
+//        mapView.onSaveInstanceState(mapVBundle);
+//    }
 
       public boolean isServicesUpToDate(){
         Log.d(TAG, "isServicesUpToDate: checking google services version" );
@@ -297,7 +352,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     }
                 });
         final AlertDialog alert = builder.create();
-//        alert.show();
+        alert.show();
+//        isMapsEnabled();
+    }
+
+    private void displayMap() {
+        Log.d(TAG, "displayMap: initializing map");
+
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(MapActivity.this);
     }
 
     private void getLocationPermission(){
@@ -311,7 +374,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             if(ContextCompat.checkSelfPermission(this.getApplicationContext(),
                     COURSE_LOCATION) == PackageManager.PERMISSION_GRANTED){
                 mLocationPermissionsGranted = true;
-                getProfileDetails();
+                displayMap();
             }else{
                 ActivityCompat.requestPermissions(this,
                         permissions,
@@ -341,7 +404,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     }
                     Log.d(TAG, "onRequestPermissionsResult: permission granted");
                     mLocationPermissionsGranted = true;
-//                 figure out map displays
+                    displayMap();
 
                 }
             }
@@ -364,49 +427,23 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
+
     @Override
-    public void onResume(){
-        super.onResume();
-        if (checkMapServices()){
-            if (mLocationPermissionsGranted){
-                getProfileDetails();
-            }
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()){
+            case R.id.menuMap:
+
+                startActivity(new Intent(this, MapActivity.class));
+
+            case R.id.menuLogout:
+
+                FirebaseAuth.getInstance().signOut();
+                finish();
+                startActivity(new Intent(this, LoginActivity.class));
         }
-        mapView.onResume();
+        return true;
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mapView.onStart();
-    }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        mapView.onStop();
-    }
-
-    @Override
-    protected void onPause() {
-        mapView.onPause();
-        super.onPause();
-    }
-
-    @Override
-    protected void onDestroy() {
-        mapView.onDestroy();
-        super.onDestroy();
-    }
-
-    @Override
-    public void onLowMemory() {
-        mapView.onLowMemory();
-        super.onLowMemory();
-    }
-
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-
-    }
 }

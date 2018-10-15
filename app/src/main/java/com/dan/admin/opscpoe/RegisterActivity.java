@@ -56,8 +56,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         findViewById(R.id.reg_btn).setOnClickListener(this);
         findViewById(R.id.sign_up_already).setOnClickListener(this);
 
-        hideSoftKeyboard();
-
     }
 
     private void registerUser(final String mail, String password){
@@ -97,11 +95,12 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                 progressBar.setVisibility(View.GONE);
                 fsDb = FirebaseFirestore.getInstance();
 
+                String names = name.getText().toString().trim();
                 if (task.isSuccessful()){
 
                     Profile user = new Profile();
                     user.setEmail(mail);
-                    user.setUsername(mail.substring(0,mail.indexOf("@")));
+                    user.setUsername(names);
                     user.setUser_id(FirebaseAuth.getInstance().getUid());
 
                     FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
@@ -206,9 +205,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                 break;
             }
     }
-    private void hideSoftKeyboard(){
-        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-    }
+
 }
 
 

@@ -7,18 +7,16 @@ public class Profile implements Parcelable{
     private String id;
     private String email;
     private String username;
-    private String unit;
     private String mode;
 
     public Profile(){
 
     }
 
-    public Profile(String id,String email,String username, String unit, String mode){
+    public Profile(String id,String email,String username, String mode){
         this.id = id;
         this.email = email;
         this.username = username;
-        this.unit = unit;
         this.mode = mode;
     }
 
@@ -26,6 +24,7 @@ public class Profile implements Parcelable{
         email = in.readString();
         id = in.readString();
         username = in.readString();
+        mode = in.readString();
     }
     public static final Parcelable.Creator<Profile> CREATOR = new Parcelable.Creator<Profile>() {
         @Override
@@ -67,14 +66,22 @@ public class Profile implements Parcelable{
         this.username = username;
     }
 
-    @Override
-    public String toString() {
-        return "UserProfile{" +
-                "email='" + email + '\'' +
-                ", user_id='" + id + '\'' +
-                ", username='" + username + '\'' +
-                '}';
+    public String getId() {
+        return id;
     }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getMode() {
+        return mode;
+    }
+
+    public void setMode(String mode) {
+        this.mode = mode;
+    }
+
 
     @Override
     public int describeContents() {
@@ -86,6 +93,7 @@ public class Profile implements Parcelable{
         dest.writeString(email);
         dest.writeString(id);
         dest.writeString(username);
+        dest.writeString(mode);
     }
 
 

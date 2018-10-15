@@ -45,6 +45,8 @@ public class ProfileActivity extends AppCompatActivity {
     Spinner spinnerModes;
     Spinner spinnerUnits;
     private FirebaseFirestore fsDb;
+    private UserLocation userLocation;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +67,8 @@ public class ProfileActivity extends AppCompatActivity {
 
         spinnerModes = (Spinner) findViewById(R.id.spinnerMode);
         spinnerUnits = (Spinner) findViewById(R.id.spinnerUnit);
-        loadUserInfo();
+//        loadUserInfo();
+//        getProfileDetails();
 
         findViewById(R.id.map_btn).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -83,17 +86,49 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
-    private void loadUserInfo() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            if (user.getDisplayName() != null) {
-                String displayName = user.getDisplayName();
-                headingTv.setText("Welcome " + displayName);
-            }
-        }else{
-            Log.d(TAG, "wtf");
-        }
-    }
+//    private void loadUserInfo() {
+//
+//        FirebaseUser user = mAuth.getCurrentUser();
+//
+//
+//        if (user != null) {
+//
+//                String displayName = user.getDisplayName();
+//                headingTv.setText("Welcome " + displayName);
+//                Log.d(TAG, "got here");
+//                Toast.makeText(getApplicationContext(),"WHATTHEFUCK", Toast.LENGTH_SHORT).show();
+//        }else{
+//            Log.d(TAG, "wtf");
+//        }
+//    }
+
+
+//    private void getProfileDetails(){
+//
+//        if (userLocation == null){
+//            userLocation = new UserLocation();
+//
+//            DocumentReference reference = fsDb.collection(getString(R.string.user_collection))
+//                    .document(FirebaseAuth.getInstance().getUid());
+//
+//            reference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+//                @Override
+//                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+//                    if (task.isSuccessful()){
+//                        Log.d(TAG, "onComplete: successfully set the user profile.");
+//                        Profile profile = task.getResult().toObject(Profile.class);
+//                        userLocation.setProfile(profile);
+//                        ((UserProfile)getApplicationContext()).setProfile(profile);
+//                        Log.d(TAG, "getProfileDetails: worked" );
+//                    }
+//                }
+//            });
+//        }else{
+//            Log.d(TAG, "getProfileDetails: didnt work" );
+//        }
+//    }
+
+
 
 //    @Override
 //    protected void onStart() {
@@ -145,16 +180,16 @@ public class ProfileActivity extends AppCompatActivity {
 
             Toast.makeText(getApplicationContext(),ids, Toast.LENGTH_SHORT).show();
 
-
             String mode = spinnerModes.getSelectedItem().toString();
-            String unit = spinnerUnits.getSelectedItem().toString();
 
             String email = user.getEmail();
-            String username = user.getEmail();
+            String username = user.getDisplayName();
 
 //          String id = databaseProfile.push().getKey();
 
-            Profile profile = new Profile(ids,email,username, unit, mode);
+            Profile profile = new Profile(ids,email,username, mode);
+            profile.setMode(mode);
+
 
             databaseProfile.child(ids).setValue(profile);
 
