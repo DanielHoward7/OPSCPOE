@@ -8,16 +8,16 @@
     android:background="@color/colorPrimary"
     tools:context=".RegisterActivity">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textSize="30dp"
-        android:textColor="@color/textColor"
-        android:gravity="center"
-        android:layout_marginTop="30dp"
-        android:textStyle="bold"
-        />
+    <!--<TextView-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="@string/app_name"-->
+        <!--android:textSize="30dp"-->
+        <!--android:textColor="@color/textColor"-->
+        <!--android:gravity="center"-->
+        <!--android:layout_marginTop="30dp"-->
+        <!--android:textStyle="bold"-->
+        <!--/>-->
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -26,6 +26,26 @@
         android:layout_marginRight="25dp"
         android:layout_marginTop="50dp"
         >
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/prompt_name"
+            android:textColor="@color/textColor"
+            android:textSize="18dp"
+            android:id="@+id/prompt"
+            android:textStyle="bold"
+            android:layout_alignParentLeft="true"
+            android:layout_marginTop="10dp"
+            />
+
+        <EditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/textColor"
+            android:id="@+id/reg_name"
+            android:layout_below="@+id/prompt"
+            android:inputType="textEmailAddress"
+            />
 
             <TextView
             android:layout_width="match_parent"
@@ -36,7 +56,7 @@
             android:id="@+id/prompt1"
             android:textStyle="bold"
             android:layout_alignParentLeft="true"
-            android:layout_marginTop="10dp"
+            android:layout_below="@+id/reg_name"
             />
 
         <EditText

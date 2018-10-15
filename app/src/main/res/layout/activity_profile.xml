@@ -8,6 +8,12 @@
     android:background="@color/colorPrimary"
     tools:context=".RegisterActivity">
 
+    <android.support.v7.widget.Toolbar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/toolbar"
+        android:background="@color/colorAccent" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -17,6 +23,7 @@
         android:gravity="center"
         android:layout_marginTop="30dp"
         android:textStyle="bold"
+        android:id="@+id/headingTV"
         />
 
 
@@ -68,6 +75,20 @@
         android:text="@string/save_preferences"
         style="android:textAppearanceSmall"
         android:id="@+id/save_btn"
+        android:textColor="@color/textColor"
+        android:background="@drawable/button_selecter"
+        android:textStyle="bold"
+        android:layout_marginLeft="25dp"
+        android:layout_marginRight="25dp"
+        android:layout_marginTop="20dp"
+        />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="MAP"
+        style="android:textAppearanceSmall"
+        android:id="@+id/map_btn"
         android:textColor="@color/textColor"
         android:background="@drawable/button_selecter"
         android:textStyle="bold"

@@ -14,12 +14,21 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
+
+import java.util.Objects;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
     FirebaseAuth mAuth;
     EditText email, pass;
     ProgressBar progressBar;
+
+    private FirebaseAuth.AuthStateListener mAuthListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +42,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         mAuth = FirebaseAuth.getInstance();
 
+//        firebaseAuth();
         findViewById(R.id.sign_up).setOnClickListener(this);
         findViewById(R.id.loginBtn).setOnClickListener(this);
     }
@@ -84,14 +94,61 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         });
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+//    private void firebaseAuth(){
+////
+////        mAuthListener = new FirebaseAuth.AuthStateListener() {
+////            @Override
+////            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+////                FirebaseUser user = firebaseAuth.getCurrentUser();
+////                if (user != null) {
+////                    Toast.makeText(LoginActivity.this, "Authenticated with: " + user.getEmail(), Toast.LENGTH_SHORT).show();
+////
+//////                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+//////                    FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+//////                            .setTimestampsInSnapshotsEnabled(true)
+//////                            .build();
+//////                    db.setFirestoreSettings(settings);
+//////
+//////                    DocumentReference userRef = db.collection(getString(R.string.user_collection))
+//////                            .document(user.getUid());
+//////
+//////                    userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+//////                        @Override
+//////                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+//////                            if(task.isSuccessful()){
+//////                                Profile profile = Objects.requireNonNull(task.getResult()).toObject(Profile.class);
+//////                                ((UserProfile)(getApplicationContext())).setProfile(profile);
+////                                Intent intent = new Intent(LoginActivity.this, MapActivity.class);
+////                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+////                                startActivity(intent);
+////                                finish();
+////
+////                } else {
+////                    Toast.makeText(LoginActivity.this, "AUTH FAILED", Toast.LENGTH_SHORT).show();
+////
+////                    FirebaseAuth.getInstance().signOut();
+////                    finish();
+////                    Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+////                    startActivity(intent);
+////
+////                }
+////            }
+////        };
+////    }
 
-        if (mAuth.getCurrentUser()!=null){
-            finish();
-            startActivity(new Intent(this, ProfileActivity.class));
-        }
+//    @Override
+//    protected void onStart() {
+//        super.onStart();
+//
+//        if (mAuth.getCurrentUser()!=null){
+//            finish();
+//            startActivity(new Intent(this, ProfileActivity.class));
+//        }
+//    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
     }
 
     @Override
@@ -104,12 +161,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 break;
 
             case R.id.loginBtn:
-
                 loginUser();
-
                 break;
-
-
         }
     }
 }

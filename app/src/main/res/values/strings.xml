@@ -12,6 +12,7 @@
     <string name="imperial">imperial</string>
     <string name="unit">Choose preferred unit of measurement</string>
     <string name="save_preferences">Save Preferences</string>
+    <string name="api_key">AIzaSyDeDY7t3wXRNkD6_SL6qiRzruGZQybnm-U</string>
     
     <array name="modes">
         <item>Car</item>
@@ -23,4 +24,7 @@
         <item>Imperial</item>
         <item>Metric</item>
     </array>
+
+    <string name="user_collection">Users</string>
+    <string name="user_locations">User Locations</string>
 </resources>

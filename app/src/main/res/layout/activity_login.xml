@@ -7,16 +7,16 @@
     android:orientation="vertical"
     tools:context=".LoginActivity">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textSize="30dp"
-        android:textColor="@color/textColor"
-        android:gravity="center"
-        android:layout_marginTop="30dp"
-        android:textStyle="bold"
-        />
+    <!--<TextView-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="@string/app_name"-->
+        <!--android:textSize="30dp"-->
+        <!--android:textColor="@color/textColor"-->
+        <!--android:gravity="center"-->
+        <!--android:layout_marginTop="30dp"-->
+        <!--android:textStyle="bold"-->
+        <!--/>-->
 
     <RelativeLayout
         android:layout_width="match_parent"
