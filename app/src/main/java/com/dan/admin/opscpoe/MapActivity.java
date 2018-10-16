@@ -45,6 +45,7 @@ import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnPolylineClickListener;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -70,7 +71,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener {
+public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener, OnPolylineClickListener {
 
     private static final String TAG = "DEBUGZ";
     private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
@@ -102,6 +103,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private ArrayList<UserLocation> userLocationArrayList = new ArrayList<>();
     private List<com.google.maps.model.LatLng> decodedPath;
     private List<LatLng> newDecodedPath;
+    private ArrayList<Polylines> polyLines = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,6 +159,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             map.setMyLocationEnabled(true);
             map.getUiSettings().setMyLocationButtonEnabled(false);
             map.setOnInfoWindowClickListener(this);
+            map.setOnPolylineClickListener(this);
             init();
 
         }
@@ -426,13 +429,19 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
                 newDecodedPath = new ArrayList<>();
 
+
+
+
                 for (com.google.maps.model.LatLng latLng : decodedPath) {
                     newDecodedPath.add(new LatLng(latLng.lat, latLng.lng));
 
                 }
+
                 Polyline polyline = map.addPolyline(new PolylineOptions().addAll(newDecodedPath));
                 polyline.setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark));
                 polyline.setClickable(true);
+
+                polyLines.add(new Polylines(polyline, route.legs[0]);
             }
         });
     }
@@ -710,4 +719,28 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             alert.show();
         }
 
+    @Override
+    public void onPolylineClick(Polyline polyline) {
+
+        int index = 0;
+        for (Polylines polylineData : polyLines){
+            index++;
+            Log.e(TAG,"onPolyLineCLick : " + polyline.toString());
+            if (polyline.getId().equals(polylineData.getPolyline().getId())){
+                polylineData.getPolyline().setColor(ContextCompat.getColor(getApplicationContext(),R.color.colorAccent));
+                polylineData.getPolyline().setZIndex(1);
+
+                LatLng destination = new LatLng(polylineData.getLeg().endLocation.lat, polylineData.getLeg().endLocation.lat);
+
+                Marker marker = map.addMarker(new MarkerOptions().position(destination).title("Trip: #" +index).snippet("Duration: " + polylineData.getLeg().duration + "and "  + "Distance: "+ polylineData.getLeg().distance));
+
+                marker.showInfoWindow();
+            }
+        }
+        polyline.setColor(ContextCompat.getColor(getApplicationContext(),R.color.colorAccent));
+        polyline.setZIndex(1);
+
+
+
+    }
 }
