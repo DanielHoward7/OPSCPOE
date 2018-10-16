@@ -64,6 +64,7 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.internal.PolylineEncoding;
+import com.google.maps.model.DirectionsLeg;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
 
@@ -104,6 +105,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private List<com.google.maps.model.LatLng> decodedPath;
     private List<LatLng> newDecodedPath;
     private ArrayList<Polylines> polyLines = new ArrayList<>();
+    private Marker selectedMarker = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,9 +125,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         walk = (ImageView) findViewById(R.id.ic_walk);
         car = (ImageView) findViewById(R.id.ic_car);
         pub = (ImageView) findViewById(R.id.ic_pub);
-
-
-
 
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
@@ -378,6 +377,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 Log.d(TAG, "onResult: duration: " + result.routes[0].legs[0].duration);
                 Log.d(TAG, "onResult: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
                 mapRoute(result);
+
+
             }
 
             @Override
@@ -425,26 +426,31 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             public void run() {
                 Log.d(TAG, "run: result routes: " + directionsResult.routes.length);
 
-                for (DirectionsRoute route : directionsResult.routes)
+                for (int i = 0; i < directionsResult.routes.length; i++) {
+                    DirectionsRoute route = directionsResult.routes[i];
+                    for (int j = 0; j < route.legs.length; j++) {
+                        DirectionsLeg leg = route.legs[j];
+                    }
                     decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
-                newDecodedPath = new ArrayList<>();
+                    newDecodedPath = new ArrayList<>();
+
+                    for (com.google.maps.model.LatLng latLng : decodedPath) {
+                        newDecodedPath.add(new LatLng(latLng.lat, latLng.lng));
+                    }
+
+                    Polyline polyline = map.addPolyline(new PolylineOptions().addAll(newDecodedPath));
+                    polyline.setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark));
+                    polyline.setClickable(true);
+                    polyLines.add(new Polylines(polyline, route.legs[0]));
+                    onPolylineClick(polyline);
 
 
-
-
-                for (com.google.maps.model.LatLng latLng : decodedPath) {
-                    newDecodedPath.add(new LatLng(latLng.lat, latLng.lng));
-
+                    selectedMarker.setVisible(false);
                 }
-
-                Polyline polyline = map.addPolyline(new PolylineOptions().addAll(newDecodedPath));
-                polyline.setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark));
-                polyline.setClickable(true);
-
-                polyLines.add(new Polylines(polyline, route.legs[0]);
             }
         });
     }
+
 
     private void saveUserLocation() {
         Log.d(TAG, "saveUserLocation");
@@ -706,6 +712,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
                             Log.e(TAG,"calculateDirections");
+                            selectedMarker = marker;
                             calculateDirections(marker);
                             dialog.dismiss();
                         }
@@ -730,17 +737,19 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 polylineData.getPolyline().setColor(ContextCompat.getColor(getApplicationContext(),R.color.colorAccent));
                 polylineData.getPolyline().setZIndex(1);
 
-                LatLng destination = new LatLng(polylineData.getLeg().endLocation.lat, polylineData.getLeg().endLocation.lat);
 
-                Marker marker = map.addMarker(new MarkerOptions().position(destination).title("Trip: #" +index).snippet("Duration: " + polylineData.getLeg().duration + "and "  + "Distance: "+ polylineData.getLeg().distance));
+                LatLng destination = new LatLng(polylineData.getLeg().endLocation.lat, polylineData.getLeg().endLocation.lng);
+
+                Marker marker = map.addMarker(new MarkerOptions().position(destination)
+                        .title("Trip: #" +index)
+                        .snippet("Duration: " + polylineData.getLeg().duration + " and "  + "Distance: "+ polylineData.getLeg().distance));
 
                 marker.showInfoWindow();
+
+            }else{
+                polyline.setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+                polyline.setZIndex(1);
             }
         }
-        polyline.setColor(ContextCompat.getColor(getApplicationContext(),R.color.colorAccent));
-        polyline.setZIndex(1);
-
-
-
     }
 }
