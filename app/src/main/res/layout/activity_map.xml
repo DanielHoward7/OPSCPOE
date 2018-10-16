@@ -75,4 +75,34 @@ tools:context=".MapActivity">
         android:scaleType="centerCrop"
         android:src="@drawable/ic_info" />
 
+    <ImageView
+        android:id="@+id/ic_walk"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_below="@+id/ic_loc"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_walk" />
+
+    <ImageView
+        android:id="@+id/ic_car"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_below="@+id/ic_walk"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_car" />
+
+    <ImageView
+        android:id="@+id/ic_pub"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_below="@+id/ic_car"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="10dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_pub" />
+
 </RelativeLayout>

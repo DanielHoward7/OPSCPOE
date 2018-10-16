@@ -10,6 +10,8 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -49,6 +51,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -58,7 +62,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
+import com.google.maps.internal.PolylineEncoding;
 import com.google.maps.model.DirectionsResult;
+import com.google.maps.model.DirectionsRoute;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -85,13 +91,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private GoogleMap map;
     private ImageView gps;
     private ImageView info;
+    private ImageView walk;
+    private ImageView car;
+    private ImageView pub;
     private PlaceAutocompleteAdapter placeAutocompleteAdapter;
     private GoogleApiClient mGoogleApiClient;
     private PlaceDetails mPlace;
     private Marker marker;
     private GeoApiContext geoApiContext = null;
     private ArrayList<UserLocation> userLocationArrayList = new ArrayList<>();
-
+    private List<com.google.maps.model.LatLng> decodedPath;
+    private List<LatLng> newDecodedPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,6 +118,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         searchET = (AutoCompleteTextView) findViewById(R.id.input_search);
         gps = (ImageView) findViewById(R.id.ic_loc);
         info = (ImageView) findViewById(R.id.ic_info);
+        walk = (ImageView) findViewById(R.id.ic_walk);
+        car = (ImageView) findViewById(R.id.ic_car);
+        pub = (ImageView) findViewById(R.id.ic_pub);
+
+
+
 
         mGoogleApiClient = new GoogleApiClient
                 .Builder(this)
@@ -202,6 +218,28 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
 
+        walk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG,"Walk selected");
+            }
+        });
+
+        car.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG,"Car selected");
+
+            }
+        });
+
+        pub.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG,"Public transport selected");
+            }
+        });
+
         if (geoApiContext == null) {
             geoApiContext = new GeoApiContext.Builder().apiKey(getString(R.string.api_key)).build();
         }
@@ -215,7 +253,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         }
     }
-
 
     private void locate() {
 
@@ -337,6 +374,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 Log.d(TAG, "onResult: distance: " + result.routes[0].legs[0].distance);
                 Log.d(TAG, "onResult: duration: " + result.routes[0].legs[0].duration);
                 Log.d(TAG, "onResult: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
+                mapRoute(result);
             }
 
             @Override
@@ -374,6 +412,29 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 //            saveUserLocation();
             Log.d(TAG, "getProfileDetails: already a user");
         }
+    }
+
+    private void mapRoute(final DirectionsResult directionsResult) {
+        Log.d(TAG, "mapRoute: got here");
+
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "run: result routes: " + directionsResult.routes.length);
+
+                for (DirectionsRoute route : directionsResult.routes)
+                    decodedPath = PolylineEncoding.decode(route.overviewPolyline.getEncodedPath());
+                newDecodedPath = new ArrayList<>();
+
+                for (com.google.maps.model.LatLng latLng : decodedPath) {
+                    newDecodedPath.add(new LatLng(latLng.lat, latLng.lng));
+
+                }
+                Polyline polyline = map.addPolyline(new PolylineOptions().addAll(newDecodedPath));
+                polyline.setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark));
+                polyline.setClickable(true);
+            }
+        });
     }
 
     private void saveUserLocation() {
