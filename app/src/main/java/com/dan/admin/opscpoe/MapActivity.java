@@ -66,14 +66,14 @@ import java.util.List;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener, GoogleMap.OnInfoWindowClickListener {
 
-    private static final String TAG = "MapActivity";
+    private static final String TAG = "DEBUGZ";
     private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private static final String COURSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
-//    private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
+    //    private static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
     private static final int PERMISSIONS_REQUEST_ENABLE_GPS = 1235;
     private static final int ERROR_DIALOG_REQUEST = 9001;
-    private static final LatLngBounds latlngbounds = new LatLngBounds(new LatLng(-40,-168),new LatLng(71,136));
+    private static final LatLngBounds latlngbounds = new LatLngBounds(new LatLng(-40, -168), new LatLng(71, 136));
 
 
     private Boolean mLocationPermissionsGranted = false;
@@ -113,7 +113,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 .Builder(this)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
-                .enableAutoManage(this,0, this)
+                .enableAutoManage(this, 0, this)
                 .build();
 
         getLocationPermission();
@@ -138,13 +138,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 return;
             }
-                map.setMyLocationEnabled(true);
-                map.getUiSettings().setMyLocationButtonEnabled(false);
-                map.setOnInfoWindowClickListener(this);
-                init();
+            map.setMyLocationEnabled(true);
+            map.getUiSettings().setMyLocationButtonEnabled(false);
+            map.setOnInfoWindowClickListener(this);
+            init();
 
         }
     }
+
     private void displayMap() {
         Log.d(TAG, "displayMap: initializing map");
 
@@ -152,7 +153,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(MapActivity.this);
     }
 
-    private void init(){
+    private void init() {
         Log.d(TAG, "init: initializing");
 
         searchET.setOnItemClickListener(autocompleteAdapter);
@@ -165,13 +166,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         searchET.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int actionId, KeyEvent keyEvent) {
-                if(actionId == EditorInfo.IME_ACTION_SEARCH
+                if (actionId == EditorInfo.IME_ACTION_SEARCH
                         || actionId == EditorInfo.IME_ACTION_DONE
                         || keyEvent.getAction() == KeyEvent.ACTION_DOWN
-                        || keyEvent.getAction() == KeyEvent.KEYCODE_ENTER){
+                        || keyEvent.getAction() == KeyEvent.KEYCODE_ENTER) {
 
                     //execute our method for searching
-                   locate();
+                    locate();
                 }
 
                 return false;
@@ -190,69 +191,61 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 try {
-                    if (marker.isInfoWindowShown()){
+                    if (marker.isInfoWindowShown()) {
                         marker.hideInfoWindow();
-                    }else{
+                    } else {
                         marker.showInfoWindow();
                     }
-                }catch (NullPointerException e){
+                } catch (NullPointerException e) {
                     e.getMessage();
                 }
             }
         });
 
-        if (geoApiContext == null){
+        if (geoApiContext == null) {
             geoApiContext = new GeoApiContext.Builder().apiKey(getString(R.string.api_key)).build();
         }
 
     }
 
-    private void setUserLocation(){
-        for (UserLocation userPosition : userLocationArrayList){
-            if (userPosition.getProfile().getUser_id().equals(FirebaseAuth.getInstance().getUid())){
-                userLocation = userPosition ;
+    private void setUserLocation() {
+        for (UserLocation userPosition : userLocationArrayList) {
+            if (userPosition.getProfile().getUser_id().equals(FirebaseAuth.getInstance().getUid())) {
+                userLocation = userPosition;
             }
         }
     }
 
 
-    private void locate(){
+    private void locate() {
 
         String search = searchET.getText().toString();
 
         Geocoder geocoder = new Geocoder(MapActivity.this);
         List<Address> list = new ArrayList<>();
 
-        try{
+        try {
             list = geocoder.getFromLocationName(search, 1);
-        }catch (IOException e){
-            Log.e(TAG,"geolocate error: " + e.getMessage());
+        } catch (IOException e) {
+            Log.e(TAG, "geolocate error: " + e.getMessage());
         }
-        if (list.size() > 0){
+        if (list.size() > 0) {
             Address address = list.get(0);
             Log.d(TAG, "locate: found a location: " + address.toString());
 
             moveCamera(new LatLng(address.getLatitude(), address.getLongitude()), 13, address.getAddressLine(0));
-            GeoPoint geoPoint = new GeoPoint(address.getLatitude(),address.getLongitude());
-            userLocation.setGeoPoint(geoPoint);
-            userLocation.setTimestamp(null);
-            Log.d(TAG, "OnComplete: lat:" + geoPoint.getLatitude());
-            Log.d(TAG, "OnComplete: long:" + geoPoint.getLongitude());
-
-            userLocation.setGeoPoint(geoPoint);
-            userLocation.setTimestamp(null);
-            saveUserLocation();
 
         }
     }
-    private void moveCamera(LatLng latLng, float zoom, PlaceDetails details){
-        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
+
+    private void moveCamera(LatLng latLng, float zoom, PlaceDetails details) {
+        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
 
         map.clear();
 
-        if(details != null){
-            try{
+        if (details != null) {
+            try {
                 String snippet = "Address: " + details.getAddress() + "\n" +
                         "Phone Number: " + details.getPhoneNumber() + "\n" +
                         "Website: " + details.getWebsiteUri() + "\n" +
@@ -264,54 +257,58 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         .snippet(snippet);
                 marker = map.addMarker(options);
 
-            }catch (NullPointerException e){
-                Log.e(TAG, "moveCamera: NullPointerException: " + e.getMessage() );
+            } catch (NullPointerException e) {
+                Log.e(TAG, "moveCamera: NullPointerException: " + e.getMessage());
             }
-        }else{
+        } else {
             map.addMarker(new MarkerOptions().position(latLng));
         }
     }
 
-    private void moveCamera(LatLng latLng, float zoom, String title){
-        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude );
+    private void moveCamera(LatLng latLng, float zoom, String title) {
+        Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
 
         MarkerOptions options = new MarkerOptions().position(latLng).title(title);
         map.addMarker(options);
     }
 
-    private void getDeviceLocation(){
+    private void getDeviceLocation() {
         Log.d(TAG, "getDeviceLocation: getting the devices current location");
 
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
 
-        try{
-            if(mLocationPermissionsGranted){
+        try {
+            if (mLocationPermissionsGranted) {
 
                 final Task location = fusedLocationProviderClient.getLastLocation();
                 location.addOnCompleteListener(new OnCompleteListener() {
                     @Override
                     public void onComplete(@NonNull Task task) {
-                        if(task.isSuccessful()){
+                        if (task.isSuccessful()) {
                             Log.d(TAG, "onComplete: found location!");
                             Location currentLocation = (Location) task.getResult();
 
+                            GeoPoint geoPoint = new GeoPoint(currentLocation.getLatitude(), currentLocation.getLongitude());
+
+                            userLocation.setGeoPoint(geoPoint);
+
                             moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 13, "My location");
 
-                        }else{
+                        } else {
                             Log.d(TAG, "onComplete: current location is null");
                             Toast.makeText(MapActivity.this, "unable to get current location", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
             }
-        }catch (SecurityException e){
-            Log.e(TAG, "getDeviceLocation: SecurityException: " + e.getMessage() );
+        } catch (SecurityException e) {
+            Log.e(TAG, "getDeviceLocation: SecurityException: " + e.getMessage());
         }
 
     }
 
-    private void calculateDirections(Marker marker){
+    private void calculateDirections(Marker marker) {
         Log.d(TAG, "calculateDirections: calculating directions.");
 
         com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
@@ -329,27 +326,31 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 )
         );
         Log.d(TAG, "calculateDirections: destination: " + destination.toString());
+
+        Log.d(TAG, "calculateDirections: DEPART: " + userLocation.getGeoPoint());
+
+
         directions.destination(destination).setCallback(new com.google.maps.PendingResult.Callback<DirectionsResult>() {
             @Override
             public void onResult(DirectionsResult result) {
                 Log.d(TAG, "onResult: routes: " + result.routes[0].toString());
-                Log.d(TAG,"onResult: distance: " + result.routes[0].legs[0].distance);
-                Log.d(TAG,"onResult: duration: " + result.routes[0].legs[0].duration);
+                Log.d(TAG, "onResult: distance: " + result.routes[0].legs[0].distance);
+                Log.d(TAG, "onResult: duration: " + result.routes[0].legs[0].duration);
                 Log.d(TAG, "onResult: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
             }
 
             @Override
             public void onFailure(Throwable e) {
-                Log.e(TAG, "onFailure: " + e.getMessage() );
+                Log.e(TAG, "onFailure: " + e.getMessage());
 
             }
         });
 
     }
 
-    private void getProfileDetails(){
+    private void getProfileDetails() {
 
-        if (userLocation == null){
+        if (userLocation == null) {
             userLocation = new UserLocation();
 
             DocumentReference reference = fsDb.collection(getString(R.string.user_collection))
@@ -358,27 +359,27 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             reference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                 @Override
                 public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                    if (task.isSuccessful()){
+                    if (task.isSuccessful()) {
                         Log.d(TAG, "onComplete: successfully set the user profile.");
                         Profile profile = task.getResult().toObject(Profile.class);
                         userLocation.setProfile(profile);
-                        ((UserProfile)getApplicationContext()).setProfile(profile);
+                        ((UserProfile) getApplicationContext()).setProfile(profile);
 
-                        Log.d(TAG, "getProfileDetails: worked" );
-                        saveUserLocation();
+                        Log.d(TAG, "getProfileDetails: worked");
+//                        saveUserLocation();
                     }
                 }
             });
-        }else{
-           saveUserLocation();
-            Log.d(TAG, "getProfileDetails: already a user" );
+        } else {
+//            saveUserLocation();
+            Log.d(TAG, "getProfileDetails: already a user");
         }
     }
 
-    private void saveUserLocation(){
-        Log.d(TAG, "saveUserLocation" );
+    private void saveUserLocation() {
+        Log.d(TAG, "saveUserLocation");
 
-        if (userLocation != null){
+        if (userLocation != null) {
             DocumentReference reference = fsDb.collection(getString(R.string.user_locations))
                     .document(mAuth.getUid());
 
@@ -395,24 +396,32 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
     }
 
-//    private void getLastLocation(){
+//    private void getLastLocation() {
 //        Log.d(TAG, "getLastKnownLocation: called.");
 //
+//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            // TODO: Consider calling
+//            //    ActivityCompat#requestPermissions
+//            // here to request the missing permissions, and then overriding
+//            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+//            //                                          int[] grantResults)
+//            // to handle the case where the user grants the permission. See the documentation
+//            // for ActivityCompat#requestPermissions for more details.
+//            return;
+//        }
 //        fusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<android.location.Location>() {
 //            @Override
 //            public void onComplete(@NonNull Task<android.location.Location> task) {
 //                Log.d(TAG, "OnComplete: task successful");
 //
 //                Location location = task.getResult();
-//                GeoPoint geoPoint = new GeoPoint(location.getLatitude(),location.getLongitude());
+//                GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
 //                userLocation.setGeoPoint(geoPoint);
-//                userLocation.setTimestamp(null);
 //                Log.d(TAG, "OnComplete: lat:" + geoPoint.getLatitude());
 //                Log.d(TAG, "OnComplete: long:" + geoPoint.getLongitude());
 //
 //                userLocation.setGeoPoint(geoPoint);
-//                userLocation.setTimestamp(null);
-//                saveUserLocation();
+////                saveUserLocation();
 //            }
 //        });
 //
@@ -626,9 +635,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     .setCancelable(true)
                     .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                         public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
+                            Log.e(TAG,"calculateDirections");
                             calculateDirections(marker);
                             dialog.dismiss();
-                            Log.e(TAG,"calculateDirections");
                         }
                     })
                     .setNegativeButton("No", new DialogInterface.OnClickListener() {
