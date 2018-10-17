@@ -84,7 +84,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 progressBar.setVisibility(View.GONE);
                 if(task.isSuccessful()){
                     finish();
-                    Intent intent = new Intent(LoginActivity.this, ProfileActivity.class);
+                    Intent intent = new Intent(LoginActivity.this, MapActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
                 }else{
@@ -94,57 +94,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         });
     }
 
-//    private void firebaseAuth(){
-////
-////        mAuthListener = new FirebaseAuth.AuthStateListener() {
-////            @Override
-////            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-////                FirebaseUser user = firebaseAuth.getCurrentUser();
-////                if (user != null) {
-////                    Toast.makeText(LoginActivity.this, "Authenticated with: " + user.getEmail(), Toast.LENGTH_SHORT).show();
-////
-//////                    FirebaseFirestore db = FirebaseFirestore.getInstance();
-//////                    FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
-//////                            .setTimestampsInSnapshotsEnabled(true)
-//////                            .build();
-//////                    db.setFirestoreSettings(settings);
-//////
-//////                    DocumentReference userRef = db.collection(getString(R.string.user_collection))
-//////                            .document(user.getUid());
-//////
-//////                    userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-//////                        @Override
-//////                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-//////                            if(task.isSuccessful()){
-//////                                Profile profile = Objects.requireNonNull(task.getResult()).toObject(Profile.class);
-//////                                ((UserProfile)(getApplicationContext())).setProfile(profile);
-////                                Intent intent = new Intent(LoginActivity.this, MapActivity.class);
-////                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-////                                startActivity(intent);
-////                                finish();
-////
-////                } else {
-////                    Toast.makeText(LoginActivity.this, "AUTH FAILED", Toast.LENGTH_SHORT).show();
-////
-////                    FirebaseAuth.getInstance().signOut();
-////                    finish();
-////                    Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
-////                    startActivity(intent);
-////
-////                }
-////            }
-////        };
-////    }
-
-//    @Override
-//    protected void onStart() {
-//        super.onStart();
-//
-//        if (mAuth.getCurrentUser()!=null){
-//            finish();
-//            startActivity(new Intent(this, ProfileActivity.class));
-//        }
-//    }
 
     @Override
     public void onStop() {

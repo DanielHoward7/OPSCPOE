@@ -1,9 +1,11 @@
 package com.dan.admin.opscpoe;
 
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.IgnoreExtraProperties;
 
 import java.util.Date;
 
+@IgnoreExtraProperties
 public class UserLocation {
 
     private GeoPoint geoPoint;
@@ -25,7 +27,6 @@ public class UserLocation {
     public void setGeoPoint(GeoPoint geoPoint) {
         this.geoPoint = geoPoint;
     }
-
 
     public Profile getProfile() {
         return profile;

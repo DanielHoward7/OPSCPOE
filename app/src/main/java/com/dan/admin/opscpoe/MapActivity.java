@@ -224,6 +224,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view) {
                 Log.d(TAG,"Walk selected");
+                Toast.makeText(MapActivity.this, "Walking", Toast.LENGTH_SHORT).show();
+
+                userLocation.getProfile().setMode("Walk");
             }
         });
 
@@ -231,6 +234,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view) {
                 Log.d(TAG,"Car selected");
+                Toast.makeText(MapActivity.this, "Driving", Toast.LENGTH_SHORT).show();
+
+                userLocation.getProfile().setMode("Car");
+
 
             }
         });
@@ -239,6 +246,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view) {
                 Log.d(TAG,"Public transport selected");
+                Toast.makeText(MapActivity.this, "Using Public Transport", Toast.LENGTH_SHORT).show();
+
+                userLocation.getProfile().setMode("Public Transport");
+
             }
         });
 
@@ -288,7 +299,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 String snippet = "Address: " + details.getAddress() + "\n" +
                         "Phone Number: " + details.getPhoneNumber() + "\n" +
                         "Website: " + details.getWebsiteUri() + "\n" +
-                        "Price Rating: " + details.getRating() + "\n";
+                        "Price Rating: " + details.getRating() + "\n" +
+                        "Do you want directions to this place?";
 
                 MarkerOptions options = new MarkerOptions()
                         .position(latLng)
@@ -378,7 +390,29 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 Log.d(TAG, "onResult: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
                 mapRoute(result);
 
+                GeoPoint location = userLocation.getGeoPoint();
+                Log.d(TAG, "location: " + location);
+                Profile profile = userLocation.getProfile();
+                Log.d(TAG, "profile: " + profile);
 
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+                DocumentReference ref = db.collection("User Locations").document();
+
+                UserLocation user = new UserLocation();
+                user.setGeoPoint(location);
+                user.setProfile(profile);
+
+                ref.set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful()){
+                            Log.d(TAG, "user posted");
+                        }else{
+                            Log.d(TAG, "user did not post");
+                        }
+                    }
+                });
             }
 
             @Override
@@ -426,6 +460,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             public void run() {
                 Log.d(TAG, "run: result routes: " + directionsResult.routes.length);
 
+                double time = 9999999;
+
                 for (int i = 0; i < directionsResult.routes.length; i++) {
                     DirectionsRoute route = directionsResult.routes[i];
                     for (int j = 0; j < route.legs.length; j++) {
@@ -442,9 +478,13 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     polyline.setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark));
                     polyline.setClickable(true);
                     polyLines.add(new Polylines(polyline, route.legs[0]));
-                    onPolylineClick(polyline);
 
+                    double duration = route.legs[0].duration.inSeconds;
+                    if (duration < time){
+                        time = duration;
+                        onPolylineClick(polyline);
 
+                    }
                     selectedMarker.setVisible(false);
                 }
             }
@@ -747,8 +787,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 marker.showInfoWindow();
 
             }else{
-                polyline.setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
-                polyline.setZIndex(1);
+                polyline.setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark));
+                polyline.setZIndex(0);
             }
         }
     }

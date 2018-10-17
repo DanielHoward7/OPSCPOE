@@ -59,7 +59,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void registerUser(final String mail, String password){
-        showDialog();
 //        mail = email.getText().toString().trim();
 //        password = pass.getText().toString().trim();
 
@@ -87,7 +86,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             return;
         }
 
-        progressBar.setVisibility(View.VISIBLE);
+
 
         mAuth.createUserWithEmailAndPassword(mail,password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
@@ -115,7 +114,6 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                     newUser.set(user).addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
-                            hideDialog();
 
                             if(task.isSuccessful()){
                                 goToLoginScreen();
@@ -128,40 +126,9 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
                 }
                 else {
                     Toast.makeText(getApplicationContext(),"An error occurred!", Toast.LENGTH_SHORT).show();
-                    hideDialog();
                 }
-
-                // ...
             }
         });
-
-//                    // Sign in success
-//                    FirebaseUser user = mAuth.getCurrentUser();
-//
-//                    String headingName = name.getText().toString().trim();
-//
-//                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-//                            .setDisplayName(headingName).build();
-//
-//                    user.updateProfile(profileUpdates);
-//                    finish();
-//                    Toast.makeText(getApplicationContext(),"UserProfile registration successful!", Toast.LENGTH_SHORT).show();
-//                    Intent intent = new Intent(RegisterActivity.this, MapActivity.class);
-//                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//                    startActivity(intent);
-//                }else{
-//
-//                    if (task.getException() instanceof FirebaseAuthUserCollisionException){
-//                        Toast.makeText(getApplicationContext(),"UserProfile already registered!", Toast.LENGTH_SHORT).show();
-//
-//                    }else {
-//                        Toast.makeText(getApplicationContext(),task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-//
-//                    }
-//                }
-//            }
-//        });
-
     }
 
     private void goToLoginScreen(){
@@ -171,23 +138,13 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         startActivity(intent);
         finish();
     }
-    private void showDialog(){
-        progressBar.setVisibility(View.VISIBLE);
-
-    }
-
-    private void hideDialog(){
-        if(progressBar.getVisibility() == View.VISIBLE){
-            progressBar.setVisibility(View.INVISIBLE);
-        }
-    }
 
     @Override
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.reg_btn: {
                 Log.d(TAG, "onClick: attempting to register.");
-
+                progressBar.setVisibility(View.VISIBLE);
                 //check for null valued EditText fields
                 if (!isEmpty(email.getText().toString())
                         && !isEmpty(pass.getText().toString())) {
