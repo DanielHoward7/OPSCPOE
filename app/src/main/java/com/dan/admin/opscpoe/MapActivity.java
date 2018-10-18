@@ -161,6 +161,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             map.setOnPolylineClickListener(this);
             init();
 
+
         }
     }
 
@@ -339,13 +340,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         if (task.isSuccessful()) {
                             Log.d(TAG, "onComplete: found location!");
                             Location currentLocation = (Location) task.getResult();
+                            if (currentLocation != null) {
+                                GeoPoint geoPoint = new GeoPoint(currentLocation.getLatitude(), currentLocation.getLongitude());
 
-                            GeoPoint geoPoint = new GeoPoint(currentLocation.getLatitude(), currentLocation.getLongitude());
+                                userLocation.setGeoPoint(geoPoint);
 
-                            userLocation.setGeoPoint(geoPoint);
-
-                            moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 13, "My location");
-
+                                moveCamera(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 13, "My location");
+                            }else{
+                                Log.d(TAG, "onComplete: current location is null");
+                                Toast.makeText(MapActivity.this, "unable to get current location", Toast.LENGTH_SHORT).show();
+                            }
                         } else {
                             Log.d(TAG, "onComplete: current location is null");
                             Toast.makeText(MapActivity.this, "unable to get current location", Toast.LENGTH_SHORT).show();
